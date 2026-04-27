@@ -1,0 +1,2 @@
+sudo tail -f /var/log/kali-setup.log
+sudo cloud-init status
