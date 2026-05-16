@@ -1,0 +1,229 @@
+# -------------------------------------------------------
+# EC2 Image Builder Component - Kali Linux Custom Setup
+# -------------------------------------------------------
+# This component is executed by Image Builder during the AMI build.
+# It installs tools, hardens the image, and configures defaults.
+
+name: KaliLinuxCustomSetup
+description: Installs pentesting tools, utilities, and hardens the Kali Linux image.
+schemaVersion: 1.0
+
+phases:
+  - name: build
+    steps:
+      # -------------------- System Update --------------------
+      - name: SystemUpdate
+        action: ExecuteBash
+        inputs:
+          commands:
+            - echo "[*] Updating package lists..."
+            - export DEBIAN_FRONTEND=noninteractive
+            - apt-get update -y
+            - echo "[*] Upgrading installed packages..."
+            - apt-get upgrade -y
+
+      # -------------------- Core Pentesting Tools --------------------
+      - name: InstallPentestTools
+        action: ExecuteBash
+        inputs:
+          commands:
+            - echo "[*] Installing core pentesting tools..."
+            - apt-get install -y
+                nmap
+                nikto
+                dirb
+                gobuster
+                sqlmap
+                enum4linux
+                smbclient
+                hydra
+                john
+                hashcat
+                wordlists
+                seclists
+                exploitdb
+                netcat-openbsd
+                socat
+                proxychains4
+                chisel
+                whatweb
+                wfuzz
+                ffuf
+                crackmapexec
+
+      # -------------------- Useful Utilities --------------------
+      - name: InstallUtilities
+        action: ExecuteBash
+        inputs:
+          commands:
+            - echo "[*] Installing utilities..."
+            - apt-get install -y
+                tmux
+                tree
+                jq
+                unzip
+                curl
+                wget
+                net-tools
+                htop
+                vim
+                git
+                python3-pip
+                pipx
+
+      # -------------------- Install AWS CLI v2 --------------------
+      - name: InstallAWSCLI
+        action: ExecuteBash
+        inputs:
+          commands:
+            - echo "[*] Installing AWS CLI v2..."
+            - |
+              if ! command -v aws &>/dev/null; then
+                arch=$(dpkg --print-architecture)
+                if [ "$arch" = "arm64" ] || [ "$arch" = "aarch64" ]; then
+                  cli_url="https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip"
+                else
+                  cli_url="https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
+                fi
+                curl -s "$cli_url" -o "/tmp/awscliv2.zip"
+                unzip -q /tmp/awscliv2.zip -d /tmp
+                /tmp/aws/install
+                rm -rf /tmp/aws /tmp/awscliv2.zip
+                echo "[+] AWS CLI installed: $(aws --version)"
+              else
+                echo "[+] AWS CLI already present: $(aws --version)"
+              fi
+
+      # -------------------- SSH Hardening --------------------
+      - name: HardenSSH
+        action: ExecuteBash
+        inputs:
+          commands:
+            - echo "[*] Hardening SSH configuration..."
+            - sed -i 's/^#\?PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+            - sed -i 's/^#\?PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+            - sed -i 's/^#\?X11Forwarding.*/X11Forwarding no/' /etc/ssh/sshd_config
+            - echo "[+] SSH hardened — root login and password auth disabled"
+
+      # -------------------- Set Timezone --------------------
+      - name: SetTimezone
+        action: ExecuteBash
+        inputs:
+          commands:
+            - echo "[*] Setting timezone to UTC..."
+            - timedatectl set-timezone UTC
+
+      # -------------------- Login Banner --------------------
+      - name: ConfigureBanner
+        action: ExecuteBash
+        inputs:
+          commands:
+            - echo "[*] Configuring login banner..."
+            - |
+              cat > /etc/motd << 'BANNER'
+
+              ╔══════════════════════════════════════════╗
+              ║   Custom Kali Linux — EC2 Image Builder  ║
+              ║   Built with baked-in pentesting tools   ║
+              ╚══════════════════════════════════════════╝
+
+              BANNER
+
+      # -------------------- XFCE Desktop --------------------
+      - name: InstallXFCE
+        action: ExecuteBash
+        inputs:
+          commands:
+            - echo "[*] Installing XFCE desktop environment..."
+            - export DEBIAN_FRONTEND=noninteractive
+            - apt-get install -y
+                kali-desktop-xfce
+                dbus-x11
+
+      # -------------------- xRDP --------------------
+      - name: InstallXRDP
+        action: ExecuteBash
+        inputs:
+          commands:
+            - echo "[*] Installing and configuring xRDP..."
+            - export DEBIAN_FRONTEND=noninteractive
+            - apt-get install -y xrdp xorgxrdp
+            - adduser xrdp ssl-cert
+            - systemctl enable xrdp
+            - systemctl enable xrdp-sesman
+            - |
+              # Set a default password for the kali user (xRDP requires PAM auth)
+              echo 'kali:kali' | chpasswd
+            - |
+              # Configure xRDP to use XFCE
+              cat > /etc/xrdp/startwm.sh << 'EOF'
+              #!/bin/sh
+              if [ -r /etc/default/locale ]; then
+                . /etc/default/locale
+                export LANG LANGUAGE
+              fi
+              unset DBUS_SESSION_BUS_ADDRESS
+              unset XDG_RUNTIME_DIR
+              exec /usr/bin/startxfce4
+              EOF
+              chmod 755 /etc/xrdp/startwm.sh
+            - |
+              # Set Xorg session port to -1 (sesman-controlled)
+              sed -i '/^\[Xorg\]/,/^\[/ s/^port=.*/port=-1/' /etc/xrdp/xrdp.ini
+            - |
+              # Ensure xrdp-sesman uses Xorg session
+              sed -i 's/^param=Xvnc$/param=Xorg/' /etc/xrdp/sesman.ini 2>/dev/null || true
+            - |
+              # Create polkit rule to allow colord without auth (prevents dialog prompts)
+              cat > /etc/polkit-1/localauthority/50-local.d/45-allow-colord.pkla << 'EOF'
+              [Allow Colord all Users]
+              Identity=unix-user:*
+              Action=org.freedesktop.color-manager.create-device;org.freedesktop.color-manager.create-profile;org.freedesktop.color-manager.delete-device;org.freedesktop.color-manager.delete-profile;org.freedesktop.color-manager.modify-device;org.freedesktop.color-manager.modify-profile
+              ResultAny=no
+              ResultInactive=no
+              ResultActive=yes
+              EOF
+            - echo "[+] xRDP configured to use XFCE on port 3389"
+
+      # -------------------- Cleanup --------------------
+      - name: Cleanup
+        action: ExecuteBash
+        inputs:
+          commands:
+            - echo "[*] Cleaning up..."
+            - apt-get autoremove -y
+            - apt-get clean
+            - rm -rf /var/lib/apt/lists/*
+            - rm -rf /tmp/*
+            - echo "[+] Build phase complete"
+
+  - name: validate
+    steps:
+      - name: ValidateTools
+        action: ExecuteBash
+        inputs:
+          commands:
+            - echo "[*] Validating installed tools..."
+            - command -v nmap
+            - command -v gobuster
+            - command -v sqlmap
+            - command -v ffuf
+            - command -v hydra
+            - command -v aws
+            - command -v tmux
+            - command -v jq
+            - command -v xrdp
+            - command -v startxfce4
+            - echo "[+] All tools validated successfully"
+
+  - name: test
+    steps:
+      - name: TestToolVersions
+        action: ExecuteBash
+        inputs:
+          commands:
+            - echo "[*] Testing tool versions..."
+            - nmap --version | head -1
+            - aws --version
+            - python3 --version
+            - echo "[+] All tests passed"

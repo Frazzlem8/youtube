@@ -1,0 +1,20 @@
+# -------------------------------------------------------
+# Build a Custom Kali Image with EC2 Image Builder - Example Variables
+# -------------------------------------------------------
+# Copy this file to terraform.tfvars and update the values.
+#   cp terraform.tfvars.example terraform.tfvars
+
+aws_region           = "eu-west-2"
+project_name         = "kali-image-builder"
+instance_type        = "t3.medium"
+root_volume_size     = 40
+image_recipe_version = "1.0.0"
+component_version    = "1.0.0"
+
+# Distribute the AMI to these regions
+distribution_regions = ["eu-west-2"]
+
+# Schedule (cron) — leave empty for manual-only builds
+# Example: run weekly on Sundays at 2am UTC
+# pipeline_schedule = "cron(0 2 ? * SUN *)"
+pipeline_schedule = ""
