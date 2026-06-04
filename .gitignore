@@ -5,6 +5,7 @@
 *.pem
 **/terraform.tfvars
 **/youtube/
+Channel/
 *.mov
 *.mp4
 *.m4a
