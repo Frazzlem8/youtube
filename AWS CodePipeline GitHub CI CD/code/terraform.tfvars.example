@@ -1,0 +1,9 @@
+# ------- AWS CodePipeline GitHub CI CD - Example Variables -------
+# Copy this file to terraform.tfvars and update the values
+
+aws_region     = "eu-west-2"
+project_name   = "codepipeline-github-demo"
+connection_arn = "arn:aws:codeconnections:eu-west-2:123456789012:connection/00000000-0000-0000-0000-000000000000"
+github_owner   = "YOUR_GITHUB_USERNAME_OR_ORG"
+github_repo    = "YOUR_REPOSITORY_NAME"
+github_branch  = "main"

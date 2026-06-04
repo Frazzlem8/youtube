@@ -1,0 +1,17 @@
+version: 0.2
+
+phases:
+  install:
+    commands:
+      - echo "No dependencies for this static demo app"
+  build:
+    commands:
+      - echo "Building CodePipeline demo static website artifact"
+      - mkdir -p dist
+      - cp -R "AWS CodePipeline GitHub CI CD/code/demo-app/src/"* dist/
+      - sed -i "s/__BUILD_TIME__/$(date -u +%Y-%m-%dT%H:%M:%SZ)/g" dist/index.html
+
+artifacts:
+  base-directory: dist
+  files:
+    - "**/*"

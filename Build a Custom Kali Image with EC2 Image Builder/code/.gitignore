@@ -1,0 +1,15 @@
+# Terraform state & secrets
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# SSH private keys
+*.pem
+
+# Variable overrides (may contain sensitive values)
+terraform.tfvars
+
+# OS files
+.DS_Store
+Thumbs.db

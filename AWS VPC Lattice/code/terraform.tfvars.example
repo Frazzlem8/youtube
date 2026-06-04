@@ -1,0 +1,11 @@
+# ------- AWS VPC Lattice - Example Variables -------
+# Copy this file to terraform.tfvars and update the values
+
+aws_region                  = "eu-west-2"
+project_name                = "lattice-demo"
+orders_vpc_cidr             = "10.10.0.0/16"
+orders_public_subnet_cidr   = "10.10.1.0/24"
+payments_vpc_cidr           = "10.20.0.0/16"
+payments_public_subnet_cidr = "10.20.1.0/24"
+instance_type               = "t3.micro"
+allowed_ssh_cidr            = "YOUR_IP/32"

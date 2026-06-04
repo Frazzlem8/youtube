@@ -1,0 +1,15 @@
+*.tfstate
+*.tfstate.*
+**/.terraform/
+**/.terraform.lock.hcl
+*.pem
+**/terraform.tfvars
+**/youtube/
+*.mov
+*.mp4
+*.m4a
+*.wav
+*.aiff
+*.aif
+.DS_Store
+Thumbs.db

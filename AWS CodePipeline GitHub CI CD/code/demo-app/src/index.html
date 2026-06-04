@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>CodePipeline GitHub Demo</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="shell">
+      <section class="panel">
+        <p class="eyebrow">AWS CI/CD Demo</p>
+        <h1>Git push deployed this page.</h1>
+        <p>
+          This static site was pulled from GitHub by AWS CodePipeline, built by
+          AWS CodeBuild, and deployed to Amazon S3.
+        </p>
+        <dl>
+          <div>
+            <dt>Source</dt>
+            <dd>GitHub via AWS CodeConnections</dd>
+          </div>
+          <div>
+            <dt>Build</dt>
+            <dd>AWS CodeBuild</dd>
+          </div>
+          <div>
+            <dt>Deploy</dt>
+            <dd>Amazon S3 static website hosting</dd>
+          </div>
+          <div>
+            <dt>Build time</dt>
+            <dd>__BUILD_TIME__</dd>
+          </div>
+        </dl>
+      </section>
+    </main>
+  </body>
+</html>
