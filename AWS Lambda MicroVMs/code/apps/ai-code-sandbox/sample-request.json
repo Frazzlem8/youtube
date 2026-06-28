@@ -1,0 +1,3 @@
+{
+  "code": "import statistics\nvalues = [12, 15, 19, 21, 27]\nprint({'mean': statistics.mean(values), 'max': max(values)})"
+}

@@ -1,0 +1,7 @@
+aws_region         = "eu-west-1"
+project_name       = "lambda-microvm-demo"
+environment        = "demo"
+owner              = "youtube"
+image_name         = "youtube-http-api"
+app_source_dir     = "apps/http-api"
+minimum_memory_mib = 1024
